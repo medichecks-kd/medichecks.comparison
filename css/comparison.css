@@ -8,38 +8,23 @@
     right: 0;
 
     margin: 0 auto;
-    padding: 1em;
+    padding: 1rem;
 
     z-index: 1200;
 }
 
 .compareProduct--header {
-    padding: 0em 0 1em;
+    padding: 0em 0 1rem;
 }
 
 .compareProductInfo--row {
-    padding: 0.5em 0;
     border-top: 1px solid #ddd;
-
     transition: background-color 0.3s, padding 0.5s ease-in-out;
 }
-.compareProduct--category {
 
-}
 .compareProductInfo--row:hover {
-    /*padding: 2em 0;*/
     background-color: #eee;
     transition: background-color 0.1s, padding 0.5s ease-in-out;
-}
-
-/** Category heading **/
-.compare__featureCategory {
-    padding: 0.5rem 0.5rem;
-    background-color: #ddd;
-}
-
-.compareProduct__featureSubCategory {
-    padding-left: 0.5rem;
 }
 
 /** Horizontal container to scroll **/
@@ -48,7 +33,7 @@
 }
 
 /** Vertical container to scroll **/
-.comparisonFeatures--wrap {
+.comparisonSubCategories--wrap {
     max-height: 50vh;
     overflow-x: hidden;
     overflow-y: auto;
@@ -58,40 +43,100 @@
     min-width: 600px; /** Set this with Javascript to adapt to different numbers **/
 }
 
+/***************/
+
+/** Category heading **/
+.compare__featureCategory--row {
+    background-color: #ddd;
+}
+
+.compare__featureCategory {
+    padding: 0.5rem;
+}
+
+/** Subcategory **/
+.compareProduct__featureSubCategory {
+    background-color: white;
+    border-right: 1px solid #ddd;
+}
+
+.compareProductInfo--row:hover .compareProduct__featureSubCategory {
+    background-color: #eee;
+    border-right: 1px solid #ddd;
+}
+
+/** Columns **/
 .compareProduct--titleColumn {
     display: inline-block;
-    width: 14%;
+    width: 20%;
     vertical-align: middle;
-    /*border: 1px solid #ccc;*/
-
-    font-size: 1.2rem;
 }
 
 .compareProduct--valueColumn {
     display: inline-block;
-    width: 85%;
+    width: 80%;
     vertical-align: middle;
-    /*border: 1px solid #39a;*/
 }
+/***********/
 
+/** Cell contents **/
 .compareProduct--values {
     display: flex;
 }
 
 .compareProduct--value {
     flex: 1;
+    border-right: 1px solid #ddd;
+}
+.compareProduct--value img {
+    height: 1rem;
 }
 
+/** Applied when match is found **/
+.hasSubCategory {
+    background-color: #4cae4c;
+    color: white;
+}
 
+.compareProductInfo--row:hover .hasSubCategory {
+    background-color: #57d258;
+}
+/**************/
+
+/**** Buttons ****/
+
+
+/** Animate labels following the scroll **/
+.followScroll {
+    transition: transform 0.2s ease-out;
+}
+
+/** Responsive **/
+.compareProduct__featureSubCategory,
+.compareProduct--value {
+    font-size: 1.2rem;
+    line-height: 1.4rem;
+    padding: 1rem 0.5rem;
+}
 
 @media (min-width: 500px) {
+    .compareProduct__featureSubCategory,
+    .compareProduct--value {
+        font-size: 1.5rem;
+        line-height: 1.7rem;
+    }
+}
+
+@media (min-width: 769px) {
     .compareProduct--titleColumn {
-        width: 18%;
+        width: 19%;
     }
     .compareProduct--valueColumn {
         width: 81%;
     }
-    .compareProduct--titleColumn {
-        font-size: inherit;
+    .compareProduct__featureSubCategory,
+    .compareProduct--value {
+        font-size: 1.8rem;
+        line-height: 2.0rem;
     }
 }

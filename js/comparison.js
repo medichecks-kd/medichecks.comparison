@@ -169,6 +169,20 @@ function showComparison()
   var btnClear = document.getElementById('comparison__button--clear');
   btnClear.addEventListener('click', clearAll);
 
+  initLabelTracking();
+}
+
+// Close the comparison overlay
+function hideComparison()
+{
+  var container = document.getElementById('comparison__overlay');
+  // container.classList.add('hidden');
+  _mc.addClass(container, 'hidden');
+
+  var btnClose = document.getElementById('comparison__button--close');
+  btnClose.removeEventListener('click', hideComparison);
+
+  disableLabelTracking();
 }
 
 // Reset the comparison
@@ -199,16 +213,6 @@ function clearAll()
     // hideComparison();
 }
 
-function hideComparison()
-{
-  var container = document.getElementById('comparison__overlay');
-  // container.classList.add('hidden');
-  _mc.addClass(container, 'hidden');
-
-  var btnClose = document.getElementById('comparison__button--close');
-  btnClose.removeEventListener('click', hideComparison);
-}
-
 function populateComparison()
 {
   var outerWrap = document.getElementById('comparison__results');
@@ -217,17 +221,18 @@ function populateComparison()
   outerWrap.innerHTML = '';
   
   // Add product row
-  outerWrap.appendChild( generateNameRow() );
+  outerWrap.appendChild( createNameRow() );
 
   // Add price row
-  outerWrap.appendChild( generatePriceRow() );
+  outerWrap.appendChild( createPriceRow() );
 
   var featureWrap = document.createElement('div');
-  featureWrap.className = 'compareProduct--row comparisonFeatures--wrap';
+  featureWrap.className = 'compareProduct--row comparisonSubCategories--wrap';
+  featureWrap.style.minWidth = getCompareWidth();
 
   outerWrap.appendChild(featureWrap);
 
-  // _m("Feature categories: " + _comparison.features.length);
+  // _m("SubCategory categories: " + _comparison.features.length);
 
   for(var i = 0; i < _comparison.features.length; i++)
   {
@@ -238,7 +243,7 @@ function populateComparison()
 	  {
             // _m("-- subcat " + j + ": " + _comparison.features[i].subcat[j]);
 
-            var featureSubCategoryRow = generateFeatureRow(i,j);
+            var featureSubCategoryRow = createSubCategoryRow(i,j);
             if(featureSubCategoryRow !== false)
             {
                 subCatRows.push( featureSubCategoryRow );
@@ -248,7 +253,7 @@ function populateComparison()
 	  // If sub categories are populated, create the category header row and sub category rows.
 	  if(subCatRows.length > 0)
       {
-          var featureCategoryRow = generateFeatureCategoryRow( _comparison.features[i].cat );
+          var featureCategoryRow = createSubCategoryCategoryRow( _comparison.features[i].cat );
           featureWrap.appendChild(featureCategoryRow);
 
           for(var k = 0; k < subCatRows.length; k++)
@@ -260,13 +265,15 @@ function populateComparison()
   }
 }
 
-function generateFeatureCategoryRow(categoryName)
+// Create category heading row
+function createSubCategoryCategoryRow(categoryName)
 {
     var row = document.createElement('div');
-    row.className = "compareProduct--row compare__featureCategory";
+    row.className = "compareProduct--row compare__featureCategory--row";
+    row.style.minWidth = getCompareWidth();
 
     var col = document.createElement('div');
-    col.className = "compareProduct--titleColumn textBold";
+    col.className = "compareProduct--titleColumn compare__featureCategory textBold followScroll";
     col.innerHTML = categoryName;
 
     row.appendChild(col);
@@ -274,16 +281,17 @@ function generateFeatureCategoryRow(categoryName)
     return row;
 }
 
-function generateNameRow()
+// Create row for product name
+function createNameRow()
 {
     // Create row for product information
-    var productsRow = generateHeadingRow('compareProduct--names--outer');
+    var productsRow = createHeadingRow('compareProduct--names--outer');
 
     // Add spacer and content column
     var productsColOuter = addHeaderCols(productsRow);
 
     // Flex wrapper for product names
-    var productsColInner = generateHeadingContentInner('compareProduct--names');
+    var productsColInner = createHeadingContentInner('compareProduct--names');
 
     // Nest the elements
     productsColOuter.appendChild(productsColInner);
@@ -302,15 +310,16 @@ function generateNameRow()
     return productsRow;
 }
 
-function generatePriceRow()
+// Create row for product price
+function createPriceRow()
 {
     // Create row for product information
-    var productsRow = generateHeadingRow('compareProduct--prices--outer');
+    var productsRow = createHeadingRow('compareProduct--prices--outer');
 
     var productsColOuter = addHeaderCols(productsRow);
 
     // Flex wrapper for product names
-    var productsColInner = generateHeadingContentInner('compareProduct--prices');
+    var productsColInner = createHeadingContentInner('compareProduct--prices');
 
     // Nest the elements
     productsColOuter.appendChild(productsColInner);
@@ -345,29 +354,20 @@ function addHeaderCols(headerRow)
     return productsColOuter;
 }
 
-
-
 // Create heading row for results table
-function generateHeadingRow(id)
+function createHeadingRow(id)
 {
   // Create row for information
   var productsRow = document.createElement('div');
   productsRow.id = id;
   productsRow.className = 'compareProduct--row';
+  productsRow.style.minWidth = getCompareWidth();
 
   return productsRow;
 }
 
-// Create column that will contain heading row content
-// function generateHeadingContentOuter()
-// {
-// 	var productsColOuter = document.createElement('div');
-// 	productsColOuter.className = 'col-xs-10 col-xs-offset-2';
-// 	return productsColOuter;
-// }
-
 // Create inner flex wrapper for heading row content
-function generateHeadingContentInner(id)
+function createHeadingContentInner(id)
 {
 	var productsColInner = document.createElement('div');
 	productsColInner.id = id;
@@ -375,12 +375,10 @@ function generateHeadingContentInner(id)
 	return productsColInner;
 }
 
-
-function generateFeatureRow(cat, subcat)
+// Create row for a subcategory
+function createSubCategoryRow(cat, subcat)
 {
-	// _m("generateFeatureRow()");
-	// _m("-- " + cat + " | " + subcat);
-	// _m("-- " + _comparison.features[cat].subcat[subcat]);
+	// _m("createSubCategoryRow()");
 
 	// First, make sure at least one of the comparing products has
 	// this feature.
@@ -394,9 +392,9 @@ function generateFeatureRow(cat, subcat)
 	{
 		// _m("-- Checking features of product " + _comparison.toCompare[j].productID);
 
-		var productHasFeature = hasFeature( _comparison.features[cat].subcat[subcat], _comparison.toCompare[j] );
+		var productHasSubCategory = hasSubCategory( _comparison.features[cat].subcat[subcat], _comparison.toCompare[j] );
 
-		if(productHasFeature === true)
+		if(productHasSubCategory === true)
 		{
 			featureCount++;
 			results.push(true);
@@ -419,19 +417,19 @@ function generateFeatureRow(cat, subcat)
 
 		// Create column to contain feature name
 		var label = document.createElement('div');
-		label.className = 'compareProduct--titleColumn compareProduct__featureSubCategory';
+		label.className = 'compareProduct--titleColumn compareProduct__featureSubCategory followScroll';
 		label.innerHTML = _comparison.features[cat].subcat[subcat];
 		row.appendChild(label);
 
 		// Create column to contain feature tick boxes
-		var productFeatureOuter = document.createElement('div');
-		productFeatureOuter.className = 'compareProduct--valueColumn';
-		row.appendChild(productFeatureOuter);
+		var productSubCategoryOuter = document.createElement('div');
+		productSubCategoryOuter.className = 'compareProduct--valueColumn';
+		row.appendChild(productSubCategoryOuter);
 
 		// Create flex container for feature ticks
-		var productFeatureInner = document.createElement('div');
-		productFeatureInner.className = 'compareProduct--values';
-		productFeatureOuter.appendChild(productFeatureInner);
+		var productSubCategoryInner = document.createElement('div');
+		productSubCategoryInner.className = 'compareProduct--values';
+		productSubCategoryOuter.appendChild(productSubCategoryInner);
 
 		// Add product feature row
 		for (var k = 0; k < results.length; k++) {
@@ -439,10 +437,11 @@ function generateFeatureRow(cat, subcat)
 		  product.className = "compareProduct--value text-center";
 
 		  if (results[k] === true) {
-			  product.innerHTML = '<span class="success">Y</span>';
+              product.className += " hasSubCategory";
+			  product.innerHTML = '<img src="img/icons/icon--tick.svg" alt="' + _comparison.features[cat].subcat[subcat] + ' is included">';
 		  }
 
-		  productFeatureInner.appendChild(product);
+		  productSubCategoryInner.appendChild(product);
 		}
 
 		// If at least one product has this feature, return the
@@ -452,17 +451,23 @@ function generateFeatureRow(cat, subcat)
 }
 
 // Check whether this product has the specified feature
-function hasFeature(featureName, product)
+function hasSubCategory(featureName, product)
 {
-	// _m("-- hasFeature()");
+	// _m("-- hasSubCategory()");
 
 	// Get product data
 	var pd = _comparison.productData[product.productID];
 
 	// Search features
-	var found = pd.productFeatures.indexOf(featureName);
+	var found = pd.productSubCategorys.indexOf(featureName);
 
 	return (found >= 0) ? true : false;
+}
+
+// Return width based on number of items selected
+function getCompareWidth()
+{
+    return _comparison.minTitleWidth + (_comparison.toCompare.length * _comparison.minColumnWidth) + "px";
 }
 
 // Scan document for all comparable items and create Comparable
@@ -480,6 +485,8 @@ function initComparisonProducts()
 	_comparison.products.push(c);
   }   
 }
+
+
 
 // Settings
 var _comparison = {
@@ -526,42 +533,84 @@ var _comparison = {
             ]
         }
     ],
-  productData : {
-	ts754: {
-	  name: "Product 1",
-	  productFeatures: ["MPV","RBC","Neutrophils","MPV"]
-	},
-	ts580: {
-	  name: "Product 2",
-	  productFeatures: ["Platelet Count","Sodium"]
-	},
-	ts643: {
-	  name: "Product 3",
-	  productFeatures: ["Neutrophils","White Cell Count","Sodium"]
-	},
-	ts111197: {
-	  name: "Product 4",
-	  productFeatures: ["HCT","RBC","MCV",]
-	},
-	ts111347: {
-	  name: "Product 5",
-	  productFeatures: ["Sodium", "MPV"]
-	},
-	ts1318: {
-	  name: "Product 6",
-	  productFeatures: ["Monocytes","Eosinophils", "MPV"]
-	},
-	ts1114873: {
-	  name: "Product 7",
-	  productFeatures: ["Haemoglobin","HCT","RBC",]
-	},
-  },
-  max: 4,         // Maximum products to compare
-  overlay: true   // Display as overlay
+    productData : {
+        ts754: {
+          name: "Product 1",
+          productSubCategorys: ["MPV","RBC","Neutrophils","MPV"]
+        },
+        ts580: {
+          name: "Product 2",
+          productSubCategorys: ["Platelet Count","Sodium"]
+        },
+        ts643: {
+          name: "Product 3",
+          productSubCategorys: ["Neutrophils","White Cell Count","Sodium"]
+        },
+        ts111197: {
+          name: "Product 4",
+          productSubCategorys: ["HCT","RBC","MCV",]
+        },
+        ts111347: {
+          name: "Product 5",
+          productSubCategorys: ["Sodium", "MPV"]
+        },
+        ts1318: {
+          name: "Product 6",
+          productSubCategorys: ["Monocytes","Eosinophils", "MPV"]
+        },
+        ts1114873: {
+          name: "Product 7",
+          productSubCategorys: ["Haemoglobin","HCT","RBC",]
+        },
+    },
+    scrollWrap: null,   // horizontal area to track scrolling
+    followers: [],      // Labels to follow scrollWrap scroll
+    minTitleWidth: 120, // Minimum width of title column
+    minColumnWidth: 120,    // Minimum width of columns on small screens
+    max: 4,             // Maximum products to compare
 }
+
+function initLabelTracking()
+{
+    _comparison.scrollWrap = document.getElementById('comparison__results');
+
+    _m("initLabelTracking()");
+    var labels = document.querySelectorAll('.followScroll');
+    for(var i = 0; i < labels.length; i++)
+    {
+        _comparison.followers.push(labels[i]);
+    };
+    _m("-- found " + _comparison.followers.length + " followers");
+
+    _comparison.scrollWrap.addEventListener('scroll', updateFollowers);
+}
+
+function disableLabelTracking() {
+
+    if(_comparison.scrollWrap)
+    {
+        _comparison.scrollWrap.removeEventListener('scroll', updateFollowers);
+    }
+    _comparison.followers = [];
+}
+
+
+var updateFollowers = debounce(function() {
+    _m("updateFollowers() " + _comparison.followers.length);
+    var wrap = document.getElementById('comparison__results');
+
+    var distance = wrap.scrollLeft;
+
+    for(var i = 0; i < _comparison.followers.length; i++)
+    {
+        _comparison.followers[i].style.transform = 'translateX(' + distance + 'px)';
+    };
+}, 30);
+
 
 $(document).ready(function() {
 	initComparisonProducts();
+	initLabelTracking();
 });
 
 // Brings in some useful common functions
