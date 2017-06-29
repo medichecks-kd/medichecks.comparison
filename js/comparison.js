@@ -5,25 +5,28 @@ function Comparable(src)
   _m(" -- " + src);
 
   this.element = src;
-  this.toggleWrap = src.querySelector('.toggleCompare');
-  this.toggle = src.querySelector('.toggleCompare input');
-  this.toggleLabel = src.querySelector('.toggleCompare label');
+  this.toggleWrap = src.querySelector('.toggleCompare--outer');
+  this.toggle = src.querySelector('.toggleCompare--outer input');
+  this.toggleLabel = src.querySelector('.toggleCompare--outer label');
+  this.toggleCheckbox = src.querySelector('.toggleCompare--outer input');
   this.buttonDoCompare = src.querySelector('.doCompare');
   this.productName = src.querySelector('.card__title').innerText;
   this.productPrice = src.querySelector('.card__price').innerText;
-  this.productID = this.toggleWrap.querySelector('input').id;
+  this.productID = this.toggleCheckbox.id;
   
   this.comparing = false;
   
   _m(" -- pid: " + this.productID);
   
-  this.toggle.addEventListener('click', this.addRemoveCompare.bind(this));
+  this.toggle.addEventListener('click', this.addRemoveCompare.bind(this, true));
   this.buttonDoCompare.addEventListener('click', showComparison);
 }
 
 // Toggle whether product is compared or not
-Comparable.prototype.addRemoveCompare = function()
+Comparable.prototype.addRemoveCompare = function(update)
 {
+  _m(this.productID + ": addRemoveCompare()");
+
   hideComparison();
   enableComparison();
 
@@ -31,14 +34,16 @@ Comparable.prototype.addRemoveCompare = function()
 
   if(this.comparing === true)
   {
-    this.addToCompare();    
+	this.addToCompare();
   }
   else
   {
-    this.removeFromCompare();    
+	this.removeFromCompare();
   }
 
-  updateComparison();
+  if(update === true) {
+      updateComparison();
+  }
   checkLimit();
 };
 
@@ -46,10 +51,12 @@ Comparable.prototype.addRemoveCompare = function()
 Comparable.prototype.addToCompare = function()
 {
   // Add class to update UI
-  this.element.classList.add('comparing');
+  // this.element.classList.add('comparing');
+  _mc.addClass(this.element, 'comparing');
   
   // Stop hiding the comparison button
-  this.buttonDoCompare.classList.remove('hidden');
+  // this.buttonDoCompare.classList.remove('hidden');
+  _mc.removeClass(this.buttonDoCompare, 'hidden');
   
   // Update copy
   this.toggleLabel.innerText = 'Remove from compare';
@@ -58,9 +65,15 @@ Comparable.prototype.addToCompare = function()
 // Remove from the comparison list
 Comparable.prototype.removeFromCompare = function()
 {
-  this.element.classList.remove('comparing');
-  this.buttonDoCompare.classList.add('hidden');
-  this.toggleLabel.innerText = 'Compare';
+    _m("removeFromCompare()");
+    // this.element.classList.remove('comparing');
+    _mc.removeClass(this.element, 'comparing');
+
+    // this.buttonDoCompare.classList.add('hidden');
+    _mc.addClass(this.buttonDoCompare, 'hidden');
+
+    this.toggleLabel.innerText = 'Compare';
+    this.toggleCheckbox.checked = false;
 };
 
 // Ensure no more than the maximum can be selected
@@ -69,8 +82,8 @@ function checkLimit()
   // If limit is reached, disallow any more products being added
   if(_comparison.toCompare.length === _comparison.max)
   {
-    // Do not allow any more products to be compared
-    disableComparison();
+	// Do not allow any more products to be compared
+	disableComparison();
   }
 }
 
@@ -81,8 +94,8 @@ function enableComparison()
   
   for(var i = 0; i < _comparison.products.length; i++)
   {    
-    var p = _comparison.products[i];
-    p.toggle.disabled = false;
+	var p = _comparison.products[i];
+	p.toggle.disabled = false;
   }
 }
 
@@ -93,12 +106,12 @@ function disableComparison()
   
   for(var i = 0; i < _comparison.products.length; i++)
   {    
-    var p = _comparison.products[i];
-    
-    if(p.comparing === false)
-    {
-      p.toggle.disabled = true;
-    }
+	var p = _comparison.products[i];
+
+	if(p.comparing === false)
+	{
+	  p.toggle.disabled = true;
+	}
   }
 }
 
@@ -111,13 +124,13 @@ function updateComparison()
   
   for(var i = 0; i < _comparison.products.length; i++)
   {
-    var ce = _comparison.products[i];
-    // _m("product " + i + ": comparing = " + ce.comparing);
-    
-    if(ce.comparing === true)
-    {
-      _comparison.toCompare.push(ce);
-    } 
+	var ce = _comparison.products[i];
+	// _m("product " + i + ": comparing = " + ce.comparing);
+
+	if(ce.comparing === true)
+	{
+	  _comparison.toCompare.push(ce);
+	}
   }
   
   updateDoCompareButtons();  
@@ -133,12 +146,11 @@ function updateDoCompareButtons()
   
   for(var i = 0; i < btns.length; i++)
   {
-    var btn = btns[i];
-    btn.innerText = "Compare " + count + " of " + _comparison.max + " products";
-    
-    // Disable button if only one product selected
-    btn.disabled = (count === 1) ? true : false;    
-    
+	var btn = btns[i];
+	btn.innerText = "Compare " + count + " of " + _comparison.max + " products";
+
+	// Disable button if only one product selected
+	btn.disabled = (count === 1) ? true : false;
   }
 }
 
@@ -148,17 +160,50 @@ function showComparison()
   populateComparison();
 
   var container = document.getElementById('comparison__overlay');
-  container.classList.remove('hidden');
+  // container.classList.remove('hidden');
+  _mc.removeClass(container, 'hidden');
 
   var btnClose = document.getElementById('comparison__button--close');
   btnClose.addEventListener('click', hideComparison);
 
+  var btnClear = document.getElementById('comparison__button--clear');
+  btnClear.addEventListener('click', clearAll);
+
+}
+
+// Reset the comparison
+function clearAll()
+{
+    _m("clearing " + _comparison.toCompare.length);
+
+    // Uncheck all comparing
+    for(var i =0; i < _comparison.toCompare.length; i++)
+    {
+        var e = _comparison.toCompare[i];
+        // e.toggleWrap.querySelector('input').checked = false;
+
+        _m(e.productID + " is comparing: " + e.comparing);
+        // e.comparing = false;
+
+        // _m(e.productID + " is comparing: " + e.comparing);
+        e.addRemoveCompare(false);
+
+        // var e.querySelector('.toggleCompare').setAttribute('checked', false);
+    }
+
+    _comparison.toCompare = [];
+    enableComparison();
+
+    _m("cleared all " + _comparison.toCompare.length);
+
+    // hideComparison();
 }
 
 function hideComparison()
 {
   var container = document.getElementById('comparison__overlay');
-  container.classList.add('hidden');
+  // container.classList.add('hidden');
+  _mc.addClass(container, 'hidden');
 
   var btnClose = document.getElementById('comparison__button--close');
   btnClose.removeEventListener('click', hideComparison);
@@ -172,63 +217,75 @@ function populateComparison()
   outerWrap.innerHTML = '';
   
   // Add product row
-  outerWrap.appendChild( generateProductsRow() );
+  outerWrap.appendChild( generateNameRow() );
 
   // Add price row
   outerWrap.appendChild( generatePriceRow() );
 
-    for(var i = 0; i < _comparison.features.length; i++)
-    {
-        var row = generateFeatureRow(i);
-        if(row !== false)
-        {
-          outerWrap.appendChild( row );
-        }
-    }
-}
+  var featureWrap = document.createElement('div');
+  featureWrap.className = 'compareProduct--row comparisonFeatures--wrap';
 
-function generateProductsRow()
-{
-  // Create row for product information
-  var productsRow = generateHeadingRow('productsToCompare');
+  outerWrap.appendChild(featureWrap);
 
-  // Column to contain product names
-  var productsColOuter = generateHeadingContentOuter();
+  // _m("Feature categories: " + _comparison.features.length);
 
-  // Flex wrapper for product names
-  var productsColInner = generateHeadingContentInner('compareProduct--names');
+  for(var i = 0; i < _comparison.features.length; i++)
+  {
+	  // _m("feature category " + i + ": " + _comparison.features[i].cat);
+      var subCatRows = [];
 
-  // Nest the elements
-  productsRow.appendChild(productsColOuter);
-  productsColOuter.appendChild(productsColInner);
+	  for(var j = 0; j < _comparison.features[i].subcat.length; j++)
+	  {
+            // _m("-- subcat " + j + ": " + _comparison.features[i].subcat[j]);
 
-  // Create heading row
-  for(var i = 0; i < _comparison.toCompare.length; i++)
-  {    
-    var product = _comparison.toCompare[i];
-    var c = document.createElement('div');
-    c.className = "compareProduct--name flex1 text-center";
-    c.innerHTML = "<h3>" + product.productName + "</h3>";
-    
-    productsColInner.appendChild(c);    
+            var featureSubCategoryRow = generateFeatureRow(i,j);
+            if(featureSubCategoryRow !== false)
+            {
+                subCatRows.push( featureSubCategoryRow );
+            }
+	  }
+
+	  // If sub categories are populated, create the category header row and sub category rows.
+	  if(subCatRows.length > 0)
+      {
+          var featureCategoryRow = generateFeatureCategoryRow( _comparison.features[i].cat );
+          featureWrap.appendChild(featureCategoryRow);
+
+          for(var k = 0; k < subCatRows.length; k++)
+          {
+              featureWrap.appendChild( subCatRows[k] );
+          }
+      }
+
   }
-  
-  return productsRow;
 }
 
-function generatePriceRow()
+function generateFeatureCategoryRow(categoryName)
+{
+    var row = document.createElement('div');
+    row.className = "compareProduct--row compare__featureCategory";
+
+    var col = document.createElement('div');
+    col.className = "compareProduct--titleColumn textBold";
+    col.innerHTML = categoryName;
+
+    row.appendChild(col);
+
+    return row;
+}
+
+function generateNameRow()
 {
     // Create row for product information
-    var productsRow = generateHeadingRow('compareProduct--prices');
+    var productsRow = generateHeadingRow('compareProduct--names--outer');
 
-    // Column to contain product names
-    var productsColOuter = generateHeadingContentOuter();
+    // Add spacer and content column
+    var productsColOuter = addHeaderCols(productsRow);
 
     // Flex wrapper for product names
-    var productsColInner = generateHeadingContentInner('compareProduct--price');
+    var productsColInner = generateHeadingContentInner('compareProduct--names');
 
     // Nest the elements
-    productsRow.appendChild(productsColOuter);
     productsColOuter.appendChild(productsColInner);
 
     // Create heading row
@@ -236,8 +293,35 @@ function generatePriceRow()
     {
         var product = _comparison.toCompare[i];
         var c = document.createElement('div');
-        c.className = "compareProduct--price flex1 text-center";
-        c.innerHTML = product.productPrice;
+        c.className = "compareProduct--value text-center";
+        c.innerHTML = '<span class="compareProduct--name">' + product.productName + '</span>';
+
+        productsColInner.appendChild(c);
+    }
+  
+    return productsRow;
+}
+
+function generatePriceRow()
+{
+    // Create row for product information
+    var productsRow = generateHeadingRow('compareProduct--prices--outer');
+
+    var productsColOuter = addHeaderCols(productsRow);
+
+    // Flex wrapper for product names
+    var productsColInner = generateHeadingContentInner('compareProduct--prices');
+
+    // Nest the elements
+    productsColOuter.appendChild(productsColInner);
+
+    // Create heading row
+    for(var i = 0; i < _comparison.toCompare.length; i++)
+    {
+        var product = _comparison.toCompare[i];
+        var c = document.createElement('div');
+        c.className = "compareProduct--value text-center";
+        c.innerHTML = '<span class="compareProduct--price">' + product.productPrice + '</span>';
 
         productsColInner.appendChild(c);
     }
@@ -245,114 +329,140 @@ function generatePriceRow()
     return productsRow;
 }
 
+// Adds title and values column to the row and returns the
+// values element to be populated.
+function addHeaderCols(headerRow)
+{
+    var spacerColumn = document.createElement('div');
+    spacerColumn.className = 'compareProduct--titleColumn';
+
+    var productsColOuter = document.createElement('div');
+    productsColOuter.className = 'compareProduct--valueColumn';
+
+    headerRow.appendChild(spacerColumn);
+    headerRow.appendChild(productsColOuter);
+
+    return productsColOuter;
+}
+
+
+
 // Create heading row for results table
 function generateHeadingRow(id)
 {
   // Create row for information
   var productsRow = document.createElement('div');
   productsRow.id = id;
-  productsRow.classList = 'row compareProduct--header';
+  productsRow.className = 'compareProduct--row';
 
   return productsRow;
 }
 
 // Create column that will contain heading row content
-function generateHeadingContentOuter()
-{
-    var productsColOuter = document.createElement('div');
-    productsColOuter.classList = 'col-xs-10 col-xs-offset-2';
-    return productsColOuter;
-}
+// function generateHeadingContentOuter()
+// {
+// 	var productsColOuter = document.createElement('div');
+// 	productsColOuter.className = 'col-xs-10 col-xs-offset-2';
+// 	return productsColOuter;
+// }
 
 // Create inner flex wrapper for heading row content
 function generateHeadingContentInner(id)
 {
-    var productsColInner = document.createElement('div');
-    productsColInner.id = id;
-    productsColInner.classList = 'flex';
-    return productsColInner;
+	var productsColInner = document.createElement('div');
+	productsColInner.id = id;
+	productsColInner.className = 'compareProduct--values';
+	return productsColInner;
 }
 
 
-function generateFeatureRow(featureId)
+function generateFeatureRow(cat, subcat)
 {
-    // First, make sure at least one of the comparing products has
-    // this feature.
+	// _m("generateFeatureRow()");
+	// _m("-- " + cat + " | " + subcat);
+	// _m("-- " + _comparison.features[cat].subcat[subcat]);
 
-    // Count of how many products contain this feature
-    var featureCount = 0;
+	// First, make sure at least one of the comparing products has
+	// this feature.
 
-    // Store whether product has this feature
-    var results = [];
+	// Count of how many products contain this feature
+	var featureCount = 0;
+	var results = [];
 
-    for(var j = 0; j < _comparison.toCompare.length; j++)
-    {
-      var productHasFeature = hasFeature(featureId, _comparison.toCompare[j]);
-      if(productHasFeature === true)
-      {
-        featureCount++;
-        results.push(true);
-      }
-      else
-      {
-        results.push(false);
-      }
-    }
+	// Check whether each product has this feature
+	for(var j = 0; j < _comparison.toCompare.length; j++)
+	{
+		// _m("-- Checking features of product " + _comparison.toCompare[j].productID);
 
-    // If no products have this feature then abandon.
-    if(featureCount === 0)
-    {
-    return false;
-    }
-    else {
+		var productHasFeature = hasFeature( _comparison.features[cat].subcat[subcat], _comparison.toCompare[j] );
 
-      // Create row to contain a feature
-      var row = document.createElement('div');
-      row.className = 'row compareProductInfo--row';
+		if(productHasFeature === true)
+		{
+			featureCount++;
+			results.push(true);
+		}
+		else
+		{
+			results.push(false);
+		}
+	}
 
-      // Create column to contain feature name
-      var label = document.createElement('div');
-      label.classList = 'col-xs-2 compareProductInfo--col';
-      label.innerHTML = _comparison.features[featureId];
-      row.appendChild(label);
+	// If no products have this feature then abandon.
+	if(featureCount === 0)
+	{
+		return false;
+	}
+	else {
+		// Create row to contain a feature
+		var row = document.createElement('div');
+		row.className = 'compareProductInfo--row';
 
-      // Create column to contain feature tick boxes
-      var productFeatureOuter = document.createElement('div');
-      productFeatureOuter.classList = 'col-xs-10';
-      row.appendChild(productFeatureOuter);
+		// Create column to contain feature name
+		var label = document.createElement('div');
+		label.className = 'compareProduct--titleColumn compareProduct__featureSubCategory';
+		label.innerHTML = _comparison.features[cat].subcat[subcat];
+		row.appendChild(label);
 
-      // Create flex container for feature ticks
-      var productFeatureInner = document.createElement('div');
-      productFeatureInner.classList = 'flex';
-      productFeatureOuter.appendChild(productFeatureInner);
+		// Create column to contain feature tick boxes
+		var productFeatureOuter = document.createElement('div');
+		productFeatureOuter.className = 'compareProduct--valueColumn';
+		row.appendChild(productFeatureOuter);
 
+		// Create flex container for feature ticks
+		var productFeatureInner = document.createElement('div');
+		productFeatureInner.className = 'compareProduct--values';
+		productFeatureOuter.appendChild(productFeatureInner);
 
-      // Add product feature row
-      for (var k = 0; k < results.length; k++) {
-          var product = document.createElement('div');
-          product.className = "compareProduct--feature flex1 text-center";
+		// Add product feature row
+		for (var k = 0; k < results.length; k++) {
+		  var product = document.createElement('div');
+		  product.className = "compareProduct--value text-center";
 
-          if (results[k] === true) {
-              product.innerHTML = '<span class="success">Y</span>';
-          }
+		  if (results[k] === true) {
+			  product.innerHTML = '<span class="success">Y</span>';
+		  }
 
-          productFeatureInner.appendChild(product);
-      }
+		  productFeatureInner.appendChild(product);
+		}
 
-      // If at least one product has this feature, return the
-      // row, otherwise return false.
-      return row;
-    }
+		// If at least one product has this feature, return the
+		// row, otherwise return false.
+		return row;
+	}
 }
 
-function hasFeature(feature, product)
+// Check whether this product has the specified feature
+function hasFeature(featureName, product)
 {
-  var pd = _comparison.productData[product.productID];
-  
-  // Search features
-  var found = pd.features.indexOf(feature);
+	// _m("-- hasFeature()");
 
-  return (found >= 0) ? true : false;
+	// Get product data
+	var pd = _comparison.productData[product.productID];
+
+	// Search features
+	var found = pd.productFeatures.indexOf(featureName);
+
+	return (found >= 0) ? true : false;
 }
 
 // Scan document for all comparable items and create Comparable
@@ -365,81 +475,94 @@ function initComparisonProducts()
 
   for(var i = 0; i < comparables.length; i++)
   {
-    var ce = comparables[i];    
-    var c = new Comparable(ce);
-    _comparison.products.push(c);
+	var ce = comparables[i];
+	var c = new Comparable(ce);
+	_comparison.products.push(c);
   }   
-}
-
-// Returns whether element has the specified class
-function hasClass(className)
-{
-  if (el.classList)
-    return el.classList.contains(className);
-  else
-    return new RegExp('(^| )' + className + '( |$)', 'gi').test(el.className);
-}
-
-/** Debugging **/
-
-function _m(msg)
-{
-  console.log(msg);
 }
 
 // Settings
 var _comparison = {
-  products: [],
-  toCompare: [],
-  features : [
-      "Red Blood Cells",
-      "Haemoglobin",
-      "White Blood Cells",
-      "White Cell Count",
-      "Neutrophils",
-      "Lymphocytes",
-      "Monocytes",
-      "Eosinophils",
-      "Basophils",
-      "Blood Film Report",
-      "Clotting Status",
-      "Kidney Function"
-
+	products: [],
+	toCompare: [],
+	features : [
+	    {
+		    cat: "Red Blood Cells",
+            subcat: [
+                  "Haemoglobin",
+                  "HCT",
+                  "RBC",
+                  "MCV",
+                  "MCH",
+                  "MCHC",
+                  "RDW"
+            ]
+        },
+        {
+            cat:"White Blood Cells",
+            subcat:[
+              "White Cell Count",
+              "Neutrophils",
+              "Lymphocytes",
+              "Monocytes",
+              "Eosinophils",
+              "Basophils",
+              "Blood Film Report"
+            ]
+        },
+        {
+            cat:"Clotting Status",
+            subcat:[
+                "Platelet Count",
+                "MPV"
+            ]
+        },
+        {
+            cat: "Kidney Function",
+            subcat: [
+                "Sodium",
+                "Urea",
+                "Creatinine"
+            ]
+        }
     ],
   productData : {
-    ts754: {
-      name: "Product 1",
-      features: [1,4,5,7,8]
-    },
-    ts580: {
-      name: "Product 2",
-      features: [0,1,2,3,4,5,6]
-    },
-    ts643: {
-      name: "Product 3",
-      features: [0,1,2,3]
-    },
-    ts111197: {
-      name: "Product 4",
-      features: [1,5,6]
-    },
-    ts111347: {
-      name: "Product 5",
-      features: [0,1,2,3,4]
-    },
-    ts1318: {
-      name: "Product 6",
-      features: [1,3,5,7]
-    },
-    ts1114873: {
-      name: "Product 7",
-      features: [1,3,5,7]
-    },
+	ts754: {
+	  name: "Product 1",
+	  productFeatures: ["MPV","RBC","Neutrophils","MPV"]
+	},
+	ts580: {
+	  name: "Product 2",
+	  productFeatures: ["Platelet Count","Sodium"]
+	},
+	ts643: {
+	  name: "Product 3",
+	  productFeatures: ["Neutrophils","White Cell Count","Sodium"]
+	},
+	ts111197: {
+	  name: "Product 4",
+	  productFeatures: ["HCT","RBC","MCV",]
+	},
+	ts111347: {
+	  name: "Product 5",
+	  productFeatures: ["Sodium", "MPV"]
+	},
+	ts1318: {
+	  name: "Product 6",
+	  productFeatures: ["Monocytes","Eosinophils", "MPV"]
+	},
+	ts1114873: {
+	  name: "Product 7",
+	  productFeatures: ["Haemoglobin","HCT","RBC",]
+	},
   },
   max: 4,         // Maximum products to compare
   overlay: true   // Display as overlay
 }
 
 $(document).ready(function() {
-    initComparisonProducts();
+	initComparisonProducts();
 });
+
+// Brings in some useful common functions
+var _mc = new Medichecks();
